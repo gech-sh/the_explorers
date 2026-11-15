@@ -1,0 +1,197 @@
+{
+  "region_id": "arcadia-planitia-hirise-v1",
+  "kind": "climate_model",
+  "live": false,
+  "coordinate": [
+    -171.375,
+    45.638
+  ],
+  "solar_longitude_deg": 90,
+  "season": "Northern summer solstice",
+  "altitude_above_surface_m": 1.5,
+  "scenario": "Climatology, average solar; high-resolution topography enabled",
+  "source": "Mars Climate Database 6.2 (LMD/OU/IAA/ESA/CNES)",
+  "source_url": "https://www-mars.lmd.jussieu.fr/mcd_python/",
+  "request_url": "https://www-mars.lmd.jussieu.fr/mcd_python/cgi-bin/mcdcgi.py?var1=t&var2=p&var3=vmr_h2o&var4=tsurf&datekeyhtml=1&ls=90&localtime=all&latitude=45.638&longitude=188.625&altitude=1.5&zkey=3&spacecraft=none&isfixedlt=on&dust=1&hrkey=1&averaging=off&animation=off&dpi=80&islog=off&colorm=jet&proj=cyl&iswind=off",
+  "retrieved_at": "2026-11-14T13:10:51.493418",
+  "retrieved_at_timezone": "Not specified by upstream service",
+  "source_sha256": "15fc159b011330bb786e20c79c6519f9aed7de848e6ee60179725f814462d70d",
+  "spatial_note": "One regional model column at the sector center; no 20 m weather resolution or site-specific observations.",
+  "samples": [
+    {
+      "local_hour": 0,
+      "air_temperature_k": 192.312,
+      "pressure_pa": 806.158,
+      "water_vapor_vmr": 0.000211441,
+      "surface_temperature_k": 192.32
+    },
+    {
+      "local_hour": 1,
+      "air_temperature_k": 189.809,
+      "pressure_pa": 807.305,
+      "water_vapor_vmr": 0.000142986,
+      "surface_temperature_k": 189.816
+    },
+    {
+      "local_hour": 2,
+      "air_temperature_k": 187.733,
+      "pressure_pa": 808.949,
+      "water_vapor_vmr": 9.86468e-05,
+      "surface_temperature_k": 187.74
+    },
+    {
+      "local_hour": 3,
+      "air_temperature_k": 186.162,
+      "pressure_pa": 811.113,
+      "water_vapor_vmr": 6.67403e-05,
+      "surface_temperature_k": 186.169
+    },
+    {
+      "local_hour": 4,
+      "air_temperature_k": 185.275,
+      "pressure_pa": 813.981,
+      "water_vapor_vmr": 5.16546e-05,
+      "surface_temperature_k": 185.283
+    },
+    {
+      "local_hour": 5,
+      "air_temperature_k": 189.66,
+      "pressure_pa": 817.303,
+      "water_vapor_vmr": 8.23756e-05,
+      "surface_temperature_k": 189.668
+    },
+    {
+      "local_hour": 6,
+      "air_temperature_k": 198.766,
+      "pressure_pa": 821.241,
+      "water_vapor_vmr": 0.000175071,
+      "surface_temperature_k": 201.185
+    },
+    {
+      "local_hour": 7,
+      "air_temperature_k": 206.736,
+      "pressure_pa": 825.48,
+      "water_vapor_vmr": 0.000276525,
+      "surface_temperature_k": 214.526
+    },
+    {
+      "local_hour": 8,
+      "air_temperature_k": 216.507,
+      "pressure_pa": 830.128,
+      "water_vapor_vmr": 0.000389831,
+      "surface_temperature_k": 230.334
+    },
+    {
+      "local_hour": 9,
+      "air_temperature_k": 224.817,
+      "pressure_pa": 831.687,
+      "water_vapor_vmr": 0.000456192,
+      "surface_temperature_k": 244.191
+    },
+    {
+      "local_hour": 10,
+      "air_temperature_k": 231.162,
+      "pressure_pa": 829.069,
+      "water_vapor_vmr": 0.000459041,
+      "surface_temperature_k": 255.408
+    },
+    {
+      "local_hour": 11,
+      "air_temperature_k": 236.416,
+      "pressure_pa": 825.922,
+      "water_vapor_vmr": 0.000461749,
+      "surface_temperature_k": 263.887
+    },
+    {
+      "local_hour": 12,
+      "air_temperature_k": 240.167,
+      "pressure_pa": 822.059,
+      "water_vapor_vmr": 0.000464268,
+      "surface_temperature_k": 268.661
+    },
+    {
+      "local_hour": 13,
+      "air_temperature_k": 242.995,
+      "pressure_pa": 818.399,
+      "water_vapor_vmr": 0.000466028,
+      "surface_temperature_k": 270.739
+    },
+    {
+      "local_hour": 14,
+      "air_temperature_k": 244.538,
+      "pressure_pa": 815.012,
+      "water_vapor_vmr": 0.000466762,
+      "surface_temperature_k": 269.17
+    },
+    {
+      "local_hour": 15,
+      "air_temperature_k": 245.138,
+      "pressure_pa": 811.386,
+      "water_vapor_vmr": 0.00046837,
+      "surface_temperature_k": 265.098
+    },
+    {
+      "local_hour": 16,
+      "air_temperature_k": 244.504,
+      "pressure_pa": 807.435,
+      "water_vapor_vmr": 0.000471162,
+      "surface_temperature_k": 257.641
+    },
+    {
+      "local_hour": 17,
+      "air_temperature_k": 241.82,
+      "pressure_pa": 804.23,
+      "water_vapor_vmr": 0.000474086,
+      "surface_temperature_k": 248.027
+    },
+    {
+      "local_hour": 18,
+      "air_temperature_k": 236.329,
+      "pressure_pa": 802.035,
+      "water_vapor_vmr": 0.000477186,
+      "surface_temperature_k": 235.492
+    },
+    {
+      "local_hour": 19,
+      "air_temperature_k": 228.775,
+      "pressure_pa": 801.339,
+      "water_vapor_vmr": 0.000476854,
+      "surface_temperature_k": 223.393
+    },
+    {
+      "local_hour": 20,
+      "air_temperature_k": 218.443,
+      "pressure_pa": 802.674,
+      "water_vapor_vmr": 0.000471879,
+      "surface_temperature_k": 211.883
+    },
+    {
+      "local_hour": 21,
+      "air_temperature_k": 210.533,
+      "pressure_pa": 803.782,
+      "water_vapor_vmr": 0.000440409,
+      "surface_temperature_k": 203.368
+    },
+    {
+      "local_hour": 22,
+      "air_temperature_k": 205.876,
+      "pressure_pa": 804.586,
+      "water_vapor_vmr": 0.000373095,
+      "surface_temperature_k": 198.904
+    },
+    {
+      "local_hour": 23,
+      "air_temperature_k": 201.833,
+      "pressure_pa": 805.379,
+      "water_vapor_vmr": 0.000297721,
+      "surface_temperature_k": 195.14
+    },
+    {
+      "local_hour": 24,
+      "air_temperature_k": 192.312,
+      "pressure_pa": 806.158,
+      "water_vapor_vmr": 0.000211441,
+      "surface_temperature_k": 192.32
+    }
+  ]
+}

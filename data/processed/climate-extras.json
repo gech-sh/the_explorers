@@ -1,0 +1,191 @@
+{
+  "source": "Mars Climate Database 6.2",
+  "live": false,
+  "coordinate": [
+    -171.375,
+    45.638
+  ],
+  "solar_longitude_deg": 90,
+  "altitude_above_surface_m": 1.5,
+  "scenario": "Climatology average solar; high-resolution topography",
+  "request_url": "https://www-mars.lmd.jussieu.fr/mcd_python/cgi-bin/mcdcgi.py?var1=wind&var2=tauref&var3=surf_h2o_ice&var4=fluxsurf_dn_sw&datekeyhtml=1&ls=90&localtime=all&latitude=45.638&longitude=188.625&altitude=1.5&zkey=3&spacecraft=none&isfixedlt=on&dust=1&hrkey=1&averaging=off&animation=off&dpi=80&islog=off&colorm=jet&proj=cyl&iswind=off",
+  "source_sha256": "c1af55d1992fd1124d0273cbf2787adbe23b7ce2ab493447c9302e302ea83c3f",
+  "retrieved_at": "2026-11-14T14:48:57.904889",
+  "samples": [
+    {
+      "local_hour": 0,
+      "wind_speed_m_s": 0.0574484,
+      "dust_optical_depth": 0.262348,
+      "surface_water_ice_kg_m2": 4.77121e-05,
+      "surface_solar_flux_w_m2": 0.0
+    },
+    {
+      "local_hour": 1,
+      "wind_speed_m_s": 0.0593768,
+      "dust_optical_depth": 0.262722,
+      "surface_water_ice_kg_m2": 6.50144e-05,
+      "surface_solar_flux_w_m2": 0.0
+    },
+    {
+      "local_hour": 2,
+      "wind_speed_m_s": 0.0612772,
+      "dust_optical_depth": 0.263257,
+      "surface_water_ice_kg_m2": 8.58737e-05,
+      "surface_solar_flux_w_m2": 0.0
+    },
+    {
+      "local_hour": 3,
+      "wind_speed_m_s": 0.06241,
+      "dust_optical_depth": 0.263962,
+      "surface_water_ice_kg_m2": 0.000108118,
+      "surface_solar_flux_w_m2": 0.0
+    },
+    {
+      "local_hour": 4,
+      "wind_speed_m_s": 0.0624869,
+      "dust_optical_depth": 0.264896,
+      "surface_water_ice_kg_m2": 0.000132237,
+      "surface_solar_flux_w_m2": 0.0
+    },
+    {
+      "local_hour": 5,
+      "wind_speed_m_s": 0.0547379,
+      "dust_optical_depth": 0.265976,
+      "surface_water_ice_kg_m2": 0.000151665,
+      "surface_solar_flux_w_m2": 51.7203
+    },
+    {
+      "local_hour": 6,
+      "wind_speed_m_s": 0.702479,
+      "dust_optical_depth": 0.267257,
+      "surface_water_ice_kg_m2": 0.000164746,
+      "surface_solar_flux_w_m2": 126.383
+    },
+    {
+      "local_hour": 7,
+      "wind_speed_m_s": 1.47986,
+      "dust_optical_depth": 0.268635,
+      "surface_water_ice_kg_m2": 0.000135661,
+      "surface_solar_flux_w_m2": 204.587
+    },
+    {
+      "local_hour": 8,
+      "wind_speed_m_s": 2.71728,
+      "dust_optical_depth": 0.270146,
+      "surface_water_ice_kg_m2": 4.95269e-05,
+      "surface_solar_flux_w_m2": 283.345
+    },
+    {
+      "local_hour": 9,
+      "wind_speed_m_s": 3.7273,
+      "dust_optical_depth": 0.270652,
+      "surface_water_ice_kg_m2": 0.0,
+      "surface_solar_flux_w_m2": 351.172
+    },
+    {
+      "local_hour": 10,
+      "wind_speed_m_s": 4.20372,
+      "dust_optical_depth": 0.269799,
+      "surface_water_ice_kg_m2": 0.0,
+      "surface_solar_flux_w_m2": 403.756
+    },
+    {
+      "local_hour": 11,
+      "wind_speed_m_s": 4.23894,
+      "dust_optical_depth": 0.268774,
+      "surface_water_ice_kg_m2": 0.0,
+      "surface_solar_flux_w_m2": 436.984
+    },
+    {
+      "local_hour": 12,
+      "wind_speed_m_s": 3.77005,
+      "dust_optical_depth": 0.267517,
+      "surface_water_ice_kg_m2": 0.0,
+      "surface_solar_flux_w_m2": 448.278
+    },
+    {
+      "local_hour": 13,
+      "wind_speed_m_s": 3.28809,
+      "dust_optical_depth": 0.266325,
+      "surface_water_ice_kg_m2": 0.0,
+      "surface_solar_flux_w_m2": 437.339
+    },
+    {
+      "local_hour": 14,
+      "wind_speed_m_s": 3.23574,
+      "dust_optical_depth": 0.265223,
+      "surface_water_ice_kg_m2": 0.0,
+      "surface_solar_flux_w_m2": 404.295
+    },
+    {
+      "local_hour": 15,
+      "wind_speed_m_s": 3.9191,
+      "dust_optical_depth": 0.264043,
+      "surface_water_ice_kg_m2": 0.0,
+      "surface_solar_flux_w_m2": 352.327
+    },
+    {
+      "local_hour": 16,
+      "wind_speed_m_s": 5.20275,
+      "dust_optical_depth": 0.262757,
+      "surface_water_ice_kg_m2": 0.0,
+      "surface_solar_flux_w_m2": 284.187
+    },
+    {
+      "local_hour": 17,
+      "wind_speed_m_s": 5.37478,
+      "dust_optical_depth": 0.261714,
+      "surface_water_ice_kg_m2": 0.0,
+      "surface_solar_flux_w_m2": 206.541
+    },
+    {
+      "local_hour": 18,
+      "wind_speed_m_s": 4.21262,
+      "dust_optical_depth": 0.261,
+      "surface_water_ice_kg_m2": 0.0,
+      "surface_solar_flux_w_m2": 124.092
+    },
+    {
+      "local_hour": 19,
+      "wind_speed_m_s": 3.32677,
+      "dust_optical_depth": 0.260775,
+      "surface_water_ice_kg_m2": 3.30705e-07,
+      "surface_solar_flux_w_m2": 51.1001
+    },
+    {
+      "local_hour": 20,
+      "wind_speed_m_s": 2.38271,
+      "dust_optical_depth": 0.261211,
+      "surface_water_ice_kg_m2": 1.10884e-06,
+      "surface_solar_flux_w_m2": 0.0
+    },
+    {
+      "local_hour": 21,
+      "wind_speed_m_s": 1.68133,
+      "dust_optical_depth": 0.261573,
+      "surface_water_ice_kg_m2": 6.92113e-06,
+      "surface_solar_flux_w_m2": 0.0
+    },
+    {
+      "local_hour": 22,
+      "wind_speed_m_s": 1.20275,
+      "dust_optical_depth": 0.261835,
+      "surface_water_ice_kg_m2": 1.95444e-05,
+      "surface_solar_flux_w_m2": 0.0
+    },
+    {
+      "local_hour": 23,
+      "wind_speed_m_s": 0.859905,
+      "dust_optical_depth": 0.262094,
+      "surface_water_ice_kg_m2": 3.30389e-05,
+      "surface_solar_flux_w_m2": 0.0
+    },
+    {
+      "local_hour": 24,
+      "wind_speed_m_s": 0.0574484,
+      "dust_optical_depth": 0.262348,
+      "surface_water_ice_kg_m2": 4.77121e-05,
+      "surface_solar_flux_w_m2": 0.0
+    }
+  ]
+}

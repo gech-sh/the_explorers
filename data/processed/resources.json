@@ -1,0 +1,55 @@
+{
+  "generated_at": "2026-11-14T13:50:19.737833+00:00",
+  "confirmed_deposits": 0,
+  "water_ice_status": "regional_evidence_only",
+  "ice_probability": null,
+  "ice_depth_m": null,
+  "ice_raster_loaded": false,
+  "regional_evidence_url": "https://www.nasa.gov/solar-system/nasas-treasure-map-for-water-ice-on-mars/",
+  "swim_products_url": "https://swim.psi.edu/SWIM4MIMProducts.php",
+  "note": "Published Arcadia ice research supports investigation. No local quantitative ice-consistency raster, borehole or assay is loaded; pins are proposals.",
+  "items": [
+    {
+      "id": "resource-terrace",
+      "kind": "water_ice",
+      "title": "Ice investigation",
+      "coordinate": [
+        -171.37234567931728,
+        45.64120538419042
+      ],
+      "status": "proposed_investigation",
+      "confirmed": false,
+      "note": "Inspect morphology and plan future subsurface measurements. Regional ice evidence does not confirm ice at this point.",
+      "source_url": "https://www.uahirise.org/dtm/dtm.php?ID=ESP_034082_2260",
+      "proposal_basis": "Existing planner-selected science waypoint on measured terrain, not a detected resource deposit."
+    },
+    {
+      "id": "resource-plains",
+      "kind": "regolith",
+      "title": "Regolith sampling",
+      "coordinate": [
+        -171.39792947803147,
+        45.655374429992314
+      ],
+      "status": "proposed_investigation",
+      "confirmed": false,
+      "note": "Proposed place to investigate surface material; composition and extractable minerals are unknown.",
+      "source_url": "https://www.uahirise.org/dtm/dtm.php?ID=ESP_034082_2260",
+      "proposal_basis": "Existing planner-selected science waypoint on measured terrain, not a detected resource deposit."
+    },
+    {
+      "id": "resource-rim",
+      "kind": "solar",
+      "title": "Solar reconnaissance",
+      "coordinate": [
+        -171.34918753876318,
+        45.62635637574878
+      ],
+      "status": "proposed_investigation",
+      "confirmed": false,
+      "note": "Proposed place to assess horizon and infrastructure suitability; no installed power source or site-specific yield is confirmed.",
+      "source_url": "https://www.uahirise.org/dtm/dtm.php?ID=ESP_034082_2260",
+      "proposal_basis": "Existing planner-selected science waypoint on measured terrain, not a detected resource deposit."
+    }
+  ]
+}
