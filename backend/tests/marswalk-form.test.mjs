@@ -1,0 +1,50 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import {Worker} from 'node:worker_threads';
+import {parseHTML} from 'linkedom';
+import {marswalkInput,briefingSnapshot} from '../public/js/marswalk-model.js';
+const {document,window}=parseHTML(fs.readFileSync(new URL('../public/index.html',import.meta.url),'utf8'));
+globalThis.document=document;globalThis.window=window;
+const nativeFetch=globalThis.fetch,origin=process.env.APP_TEST_ORIGIN||'https://127.0.0.1:8789';
+globalThis.fetch=(url,options)=>nativeFetch(new URL(url,origin),options);
+const worker=new Worker(new URL('./terrain-worker-adapter.mjs',import.meta.url));
+const pending=new Map();let id=0;
+worker.on('message',data=>{const task=pending.get(data.id);pending.delete(data.id);data.error?task.reject(new Error(data.error)):task.resolve(data.result);});
+worker.on('error',error=>{for(const task of pending.values())task.reject(error);pending.clear();});
+const {terrainEngine}=await import('../public/js/engine-client.js');
+terrainEngine.call=(type,input)=>new Promise((resolve,reject)=>{const key=++id;pending.set(key,{resolve,reject});worker.postMessage({id:key,type,input});});
+const {request}=await import('../public/js/api.js');
+const {createMarswalk}=await import('../public/js/marswalk.js');
+const name='AUTOMATED MARSWALK FORM '+Date.now();
+const el=id=>document.getElementById(id);
+const waitFor=async(predicate)=>{for(let n=0;n<250;n++){if(predicate())return;await new Promise(resolve=>setTimeout(resolve,20));}throw new Error('Timed out: '+el('marswalk-message').textContent);};
+let shown;
+try{
+  await createMarswalk({showRoute:(input,route)=>{shown={input,route};}});
+  assert.equal(el('science-stop-list').children.length,3);
+  el('science-return').checked=true;el('science-distance').value='20';el('science-duration').value='8';el('science-name').value=name;el('science-kit').value='Camera and geological field notebook';
+  for(let i=1;i<3;i++){const checkbox=el('science-stop-list').querySelectorAll('input[type=checkbox]')[i];checkbox.checked=true;checkbox.dispatchEvent(new window.Event('change',{bubbles:true}));}
+  const objective=el('science-stop-list').querySelector('textarea');objective.value='Document terrace morphology <field notes>';objective.dispatchEvent(new window.Event('input',{bubbles:true}));
+  el('science-form').dispatchEvent(new window.Event('submit',{cancelable:true}));await waitFor(()=>!el('marswalk-result').hidden);
+  assert.equal(el('science-itinerary').children.length,4,'Three science stops plus return to origin');
+  assert.equal(el('brief-science').textContent,'25 min');
+  assert.equal(el('brief-source-list').children.length,3);
+  assert.match(el('science-itinerary').textContent,/<field notes>/);
+  assert.equal(el('science-itinerary').querySelector('field'),null,'Objectives are text, not injected HTML');
+  assert.match(el('environment-air').textContent,/-33/);assert.match(el('environment-provenance').textContent,/Northern summer/);
+  el('environment-hour').value='6';el('environment-hour').dispatchEvent(new window.Event('input'));assert.match(el('environment-hour-label').textContent,/06:00/);
+  let exported;const createURL=URL.createObjectURL;URL.createObjectURL=blob=>{exported=blob;return createURL(blob);};el('marswalk-export').click();const brief=JSON.parse(await exported.text());assert.equal(brief.evidence.data_types.length,3);assert.equal(brief.environment.live,false);assert.equal(brief.mission.model_local_hour,6);URL.createObjectURL=createURL;
+  el('marswalk-map').click();assert.equal(shown.input.site_ids.length,3);assert.deepEqual(shown.route.grid_points[0],shown.route.grid_points.at(-1));
+  const snapshot=briefingSnapshot(shown.input,shown.route,{source:'test climatology',samples:[{local_hour:6,pressure_pa:800}]},6);assert.equal(snapshot.environment.live,false);assert.equal(snapshot.environment.sample.pressure_pa,800);
+  el('marswalk-save').click();await waitFor(()=>el('marswalk-save').textContent==='Saved');
+  const saved=(await request('/missions')).items.find(mission=>mission.name===name);assert.ok(saved);assert.equal(saved.crew_count,2);assert.equal(saved.equipment,'Camera and geological field notebook');assert.equal(saved.model_local_hour,6);
+  const routes=await request('/missions/'+saved.id+'/routes');assert.equal(routes.items.length,1);assert.equal(routes.items[0].mission_snapshot.observation_tasks.length,3);
+  const restore=[...el('science-archive').querySelectorAll('button')].find(button=>button.textContent.includes(name));assert.ok(restore);restore.click();assert.equal(el('marswalk-result').hidden,true);assert.equal(el('science-kit').value,saved.equipment);
+  el('science-distance').value='.1';el('science-distance').dispatchEvent(new window.Event('input',{bubbles:true}));el('science-form').dispatchEvent(new window.Event('submit',{cancelable:true}));
+  await waitFor(()=>el('marswalk-message').dataset.error==='true');assert.equal(el('marswalk-result').hidden,true);assert.equal(el('marswalk-export').disabled,true);
+  assert.throws(()=>marswalkInput({name:'test',crew:2,equipment:'',notes:'',slope:5,distanceKm:8,durationHours:4,speedKmH:3.5,returnToStart:true},[{id:'terrace',objective:'test',minutes:1.333}]),/whole minutes/);
+  console.log('PASS: actual Marswalk form + terrain worker + API/database, ordered science stops, dwell/return budgets, climate context, safe objectives, map preview, immutable briefing, save/restore and infeasible-route invalidation.');
+}finally{
+  const missions=await request('/missions').catch(()=>({items:[]}));for(const mission of missions.items.filter(item=>item.name===name))await request('/missions/'+mission.id,{method:'DELETE'});
+  await worker.terminate();
+}

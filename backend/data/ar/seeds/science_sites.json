@@ -1,0 +1,33 @@
+[
+  {
+    "id": "aaaa1111-1111-4111-8111-111111111111",
+    "region_id": "8f4b2c1a-7d3e-4a9b-8c1f-2e5d6a7b8c9d",
+    "name": "Subsurface Excess Ice Scarps (Site AP-Alpha)",
+    "objective": "Inspect shallow buried water-ice margins exposed by thermokarst scarp retreat for ISRU water extraction.",
+    "coordinate": [-170.215, 39.085],
+    "coordinate_reference": "GCS_Mars_2000",
+    "description": "Flat-lying Amazonian plains exhibiting scalloped depressions and polygonal ground indicative of shallow subsurface excess ice.",
+    "images": [
+      "https://hirise.lpl.arizona.edu/ESP_060706_2195"
+    ],
+    "source_references": [
+      "NASA/JPL/University of Arizona HiRISE ESP_060706_2195",
+      "USGS SIM 3292 (Tanaka et al., 2014) Unit lAp"
+    ]
+  },
+  {
+    "id": "bbbb2222-2222-4222-8222-222222222222",
+    "region_id": "8f4b2c1a-7d3e-4a9b-8c1f-2e5d6a7b8c9d",
+    "name": "Expanded Secondary Crater Cluster (Site AP-Beta)",
+    "objective": "Measure ejecta morphology and crater rim sublimation to estimate ice table depth.",
+    "coordinate": [-170.195, 39.105],
+    "coordinate_reference": "GCS_Mars_2000",
+    "description": "Rimless expanded secondary craters characteristic of ice-rich regolith sublimation in central Arcadia Planitia.",
+    "images": [
+      "https://hirise.lpl.arizona.edu/ESP_060706_2195"
+    ],
+    "source_references": [
+      "NASA/JPL/University of Arizona HiRISE ESP_060706_2195"
+    ]
+  }
+]

@@ -1,0 +1,34 @@
+import { Worker } from 'node:worker_threads';
+import assert from 'node:assert/strict';
+import { performance } from 'node:perf_hooks';
+const worker=new Worker(new URL('./terrain-worker-adapter.mjs',import.meta.url));
+let id=0;const pending=new Map();
+worker.on('message',data=>{const task=pending.get(data.id);pending.delete(data.id);data.error?task.reject(new Error(data.error)):task.resolve(data.result);});
+worker.on('error',error=>{for(const task of pending.values())task.reject(error);pending.clear();});
+const task=(type,input)=>new Promise((resolve,reject)=>{const key=++id;pending.set(key,{resolve,reject});worker.postMessage({id:key,type,input});});
+const timings={};
+try{
+  let now=performance.now();const init=await task('init',{});timings.preload_ms=Math.round(performance.now()-now);
+  assert.equal(init.regional_cells,250000);
+  const audit=await task('identify',[-171.375,45.638]);assert.equal(typeof audit.elevation_m,'number');
+  const ar=await task('identify',[-170.21,39.09]);assert.equal(ar.scope,'AR geometry');assert.ok(ar.geology_feature_ids.length>0);
+  let ticks=0;const interval=setInterval(()=>ticks++,5);
+  now=performance.now();const route=await task('route',{start:[-171.9,46],end:[-170.9,45.3],max_slope_deg:18,walking_speed_m_s:1,resolution:'auto'});
+  timings.regional_route_ms=Math.round(performance.now()-now);clearInterval(interval);
+  assert.ok(route.geometry.coordinates.length>10);assert.ok(ticks>0,'Main event loop remained responsive during routing');
+  now=performance.now();const fast=await task('route',{start:[-171.9,46],end:[-170.9,45.3],max_slope_deg:18,walking_speed_m_s:.5,resolution:'auto'});
+  timings.cached_speed_change_ms=Math.round(performance.now()-now);
+  assert.deepEqual(route.geometry,fast.geometry);assert.equal(fast.metrics.duration_s,Math.round(route.metrics.distance_m/.5));
+  now=performance.now();const model=await task('mesh',{scope:'detail'});timings.mesh_ms=Math.round(performance.now()-now);
+  assert.ok(model.positions instanceof Float32Array);assert.ok(model.indices instanceof Uint32Array);assert.equal(model.normals.length,model.positions.length);
+  assert.ok(model.indices.length>60000);assert.ok(model.normals.every(Number.isFinite));
+  const projected=await task('project',{scope:'detail',coordinates:[[-171.375,45.638]]});assert.equal(projected.length,1);assert.equal(typeof projected[0][1],'number');
+  const jezero=await task('route',{region:'jezero',start:[77.45088572,18.44462715],end:[77.410419,18.45394613],max_slope_deg:5,walking_speed_m_s:1,resolution:'auto'});
+  assert.equal(jezero.data_version,'jezero-hirise-v1');assert.equal(jezero.resolution_m,20);assert.ok(jezero.metrics.distance_m>2000);assert.ok(jezero.metrics.max_slope_deg<=5);
+  const comparisonInput={region:'jezero',start:[77.45088572,18.44462715],end:[77.410419,18.45394613],max_slope_deg:5,walking_speed_m_s:1,resolution:'auto'};
+  const shortest=await task('route',{...comparisonInput,objective:'shortest'}),gentlest=await task('route',{...comparisonInput,objective:'gentlest'});
+  assert.equal(shortest.objective,'shortest');assert.equal(gentlest.objective,'gentlest');assert.ok(shortest.metrics.distance_m<=gentlest.metrics.distance_m);assert.ok(gentlest.metrics.max_slope_deg<=shortest.metrics.max_slope_deg);
+  const jezeroPoint=await task('identify-jezero',[77.45088572,18.44462715]);assert.equal(typeof jezeroPoint.elevation_m,'number');
+  assert.ok(timings.regional_route_ms<3000);assert.ok(timings.cached_speed_change_ms<500);
+  console.log('PASS: actual browser worker bundle, unified source lookup, nonblocking pathfinding, route cache, transferable mesh and projection.',JSON.stringify(timings));
+}finally{await worker.terminate();}

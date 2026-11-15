@@ -1,0 +1,15 @@
+import { build } from 'esbuild';
+import fs from 'node:fs/promises';
+import path from 'node:path';
+import { execFileSync } from 'node:child_process';
+const root=path.resolve(import.meta.dirname,'..');process.chdir(root);
+await fs.mkdir('public/vendor',{recursive:true});
+await fs.cp('node_modules/leaflet/dist','public/vendor/leaflet',{recursive:true});
+await fs.cp('node_modules/@fortawesome/fontawesome-free/css/all.min.css','public/vendor/fontawesome.css');
+await fs.cp('node_modules/@fortawesome/fontawesome-free/webfonts','public/webfonts',{recursive:true});
+await fs.writeFile('tailwind.config.cjs',`module.exports={content:['./public/index.html','./public/js/{main,ui,map,api,theme,config,safety-panel,planning-safety,directions-panel,marswalk}.js','./src/*.js'],theme:{extend:{}},plugins:[]};\n`);
+await fs.writeFile('src/utilities.css','@tailwind base;\n@tailwind components;\n@tailwind utilities;\n');
+execFileSync(process.execPath,['node_modules/tailwindcss/lib/cli.js','-i','src/utilities.css','-o','public/css/utilities.css','--minify'],{stdio:'inherit'});
+await build({entryPoints:['src/terrain-engine.ts'],outfile:'public/js/terrain-engine.js',bundle:true,format:'esm',platform:'browser',minify:true});
+await build({entryPoints:['src/terrain-view.js'],outfile:'public/js/terrain-view.js',bundle:true,format:'esm',platform:'browser',minify:true,external:['/js/*'],plugins:[{name:'shared-engine-client',setup(b){b.onResolve({filter:/engine-client\.js$/},()=>({path:'/js/engine-client.js',external:true}));}}]});
+console.log('Built local styles, Leaflet, icons, terrain workers and WebGL view.');

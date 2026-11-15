@@ -1,0 +1,38 @@
+[
+  {
+    "id": "11111111-1111-4111-8111-111111111111",
+    "region_id": "8f4b2c1a-7d3e-4a9b-8c1f-2e5d6a7b8c9d",
+    "data_type": "imagery",
+    "name": "MRO HiRISE Candidate Landing Site ESP_060706_2195",
+    "source_url": "https://hirise.lpl.arizona.edu/ESP_060706_2195",
+    "product_id": "ESP_060706_2195",
+    "acquisition_time": "2019-07-09T14:39:00Z",
+    "coordinate_reference": "GCS_Mars_2000",
+    "resolution_m": 0.25,
+    "processing": "Map-projected equirectangular orthoimage normalized to -180..180 longitude."
+  },
+  {
+    "id": "22222222-2222-4222-8222-222222222222",
+    "region_id": "8f4b2c1a-7d3e-4a9b-8c1f-2e5d6a7b8c9d",
+    "data_type": "topographic",
+    "name": "Mars Trek HRSC-MOLA Blended DEM & Derived Slope",
+    "source_url": "https://nasa.gov",
+    "product_id": "Mars_HRSC_MOLA_BlendDEM_Global_200mp_v2",
+    "acquisition_time": "2014-01-01T00:00:00Z",
+    "coordinate_reference": "GCS_Mars_2000",
+    "resolution_m": 200.0,
+    "processing": "Reprojected to Mars 2000 Equidistant Cylindrical metric grid; slope derived via numpy.gradient preserving NoData (-9999)."
+  },
+  {
+    "id": "33333333-3333-4333-8333-333333333333",
+    "region_id": "8f4b2c1a-7d3e-4a9b-8c1f-2e5d6a7b8c9d",
+    "data_type": "geology",
+    "name": "USGS SIM 3292 Geologic Map of Mars",
+    "source_url": "https://pubs.usgs.gov/publication/sim3292",
+    "product_id": "SIM_3292_lAp",
+    "acquisition_time": "2014-07-14T00:00:00Z",
+    "coordinate_reference": "GCS_Mars_2000",
+    "resolution_m": 1000.0,
+    "processing": "Clipped to Arcadia Planitia study bounds; unit lAp (Late Amazonian plains unit) verified."
+  }
+]

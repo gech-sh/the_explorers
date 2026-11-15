@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>The Explorers | Martian Map</title>
+  <meta name="description" content="Plan science Marswalks using measured Martian terrain, compare routes, and explore elevation in 3D.">
+  <meta name="theme-color" content="#0f172a">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <script src="/js/product.js" defer></script>
+
+  <!-- Tailwind CSS, Leaflet & Font Awesome -->
+  <link rel="stylesheet" href="/css/utilities.css">
+  <link rel="stylesheet" href="/vendor/leaflet/leaflet.css" />
+  <link rel="stylesheet" href="/vendor/fontawesome.css" />
+  <script src="js/theme.js"></script>
+  <link rel="stylesheet" href="css/styles.css" />
+  <link rel="stylesheet" href="css/polish.css" />
+<style>.integration-note{font-size:11px;padding:8px;color:#bae6fd;background:#0f172a;border:1px solid #155e75;border-radius:8px}</style>
+</head>
+<body class="h-screen w-screen flex flex-col overflow-hidden select-none bg-[#06080d] text-slate-200">
+
+  <!-- TOP HEADER & MULTI-PAGE NAVIGATION -->
+  <header class="app-header h-14 bg-slate-950/95 border-b border-cyan-900/60 flex items-center justify-between px-4 z-30 shrink-0 gap-2">
+    <div class="flex items-center space-x-3 min-w-0">
+      <div class="brand-copy">
+        <h1 id="header-title" class="text-xs sm:text-sm font-bold tracking-wider text-cyan-400 uppercase truncate">
+          Arcadia Planitia • Tactical Marswalk Evidence &amp; Route Planner
+        </h1>
+        <p class="brand-subtitle">
+          The Explorers &middot; Interplanetary Survival Guide &middot; Marswalk planning
+        </p>
+      </div>
+    </div>
+
+    <!-- VIEW TABS -->
+    <nav aria-label="Main navigation" class="header-tabs flex items-center bg-slate-900 border border-slate-700 rounded-lg p-0.5 text-[11px] font-mono shrink-0">
+      <button data-tab="map" class="tab-btn px-2.5 py-1 rounded bg-cyan-600 text-white font-bold transition">
+        <i class="fa-solid fa-map-location-dot mr-1"></i><span class="hidden sm:inline">Tactical Map</span>
+      </button>
+      <button data-tab="science" class="tab-btn px-2.5 py-1 rounded text-slate-300 hover:bg-slate-800 transition"><i class="fa-solid fa-person-walking mr-1"></i><span class="hidden sm:inline">Marswalk</span></button>
+      <button data-tab="overview" class="tab-btn px-2.5 py-1 rounded text-slate-300 hover:bg-slate-800 transition">
+        <i class="fa-solid fa-rocket mr-1"></i><span class="hidden sm:inline">Challenge</span>
+      </button>
+      <button data-tab="gallery" class="tab-btn px-2.5 py-1 rounded text-slate-300 hover:bg-slate-800 transition">
+        <i class="fa-solid fa-camera mr-1 text-orange-400"></i><span class="hidden sm:inline">Dataset images</span>
+      </button>
+      <button data-tab="sources" class="tab-btn px-2.5 py-1 rounded text-slate-300 hover:bg-slate-800 transition">
+        <i class="fa-solid fa-database mr-1 text-purple-400"></i><span class="hidden sm:inline">Sources &amp; Saved</span>
+      </button>
+    </nav>
+
+    <!-- TELEMETRY & BACKEND STATUS -->
+    <div class="header-actions">
+      <button id="open-help" class="theme-toggle" type="button" aria-haspopup="dialog" aria-controls="planner-help">Guide</button>
+      <button id="theme-toggle" type="button" class="theme-toggle" role="switch" aria-checked="true" aria-label="Switch color theme">
+        <span class="theme-symbol" aria-hidden="true">&#9788;</span>
+        <span class="theme-track" aria-hidden="true"><span class="theme-thumb"></span></span>
+        <span id="theme-current">Dark</span>
+      </button>
+      <div class="status-group">
+      <span id="backend-status-badge" class="px-2 py-1 rounded bg-slate-900 border border-slate-700 text-slate-300">
+        <i class="fa-solid fa-plug text-amber-400 mr-1"></i>Connecting to backend...
+      </span>
+      <span id="telemetry-safety-badge" class="px-2 py-1 rounded bg-emerald-950 border border-emerald-500 text-emerald-300 font-bold">
+        <i class="fa-solid fa-circle-check mr-1"></i>Safety unverified
+      </span>
+      </div>
+    </div>
+  </header>
+
+  <!-- =====================================================================
+       VIEW 1: INTERACTIVE TACTICAL MAP PLANNER
+       ===================================================================== -->
+  <main id="view-map" class="view-section flex-1 relative overflow-hidden">
+    <!-- Map Canvas -->
+    <div id="map" class="z-0"></div>
+    <div id="terrain-3d" hidden aria-label="Interactive 3D terrain"></div>
+    <div id="terrain-toolbar" class="hud-glass terrain-toolbar" role="group" aria-label="Terrain view">
+      <button id="view-2d" class="view-mode" aria-pressed="true">2D map</button>
+      <button id="view-3d" class="view-mode" aria-pressed="false">3D terrain</button>
+      <label id="terrain-scope-label" hidden>Area <select id="terrain-scope"><option value="detail">HiRISE detail</option><option value="regional">100 km regional</option></select></label>
+      <label id="vertical-scale-label" hidden>Relief <select id="vertical-scale"><option value="1">1x</option><option value="8" selected>8x</option><option value="50">50x</option></select></label>
+    </div>
+    <p id="interaction-status" role="status" aria-live="polite" class="hud-glass interaction-status">Loading terrain into memory...</p>
+
+    <!-- Top Center Region Switcher + Full Map Toggle -->
+    <div role="group" aria-label="Map regions" class="map-filter-bar absolute top-3 left-1/2 -translate-x-1/2 z-20 flex items-center space-x-1.5 hud-glass rounded-xl p-1 text-[11px] font-mono">
+      <button data-region="arcadia" class="region-btn px-2.5 py-1 rounded-lg bg-cyan-600 text-white font-bold transition">
+        Arcadia
+      </button>
+      <button data-region="jezero" class="region-btn px-2.5 py-1 rounded-lg text-slate-300 hover:bg-slate-800 transition">
+        Jezero
+      </button>
+      <span class="text-slate-700">|</span>
+      <button id="btn-toggle-panels" class="px-2 py-1 rounded-lg text-cyan-300 hover:bg-slate-800 transition" title="Hide/Show Side Panels">
+        <i class="fa-solid fa-arrows-split-up-and-left"></i>
+      </button>
+    </div>
+
+    <!-- Reopen Panel Buttons -->
+    <button id="float-open-left" class="hidden absolute top-4 left-4 z-20 px-3 py-2 hud-glass hover:bg-slate-800/90 text-cyan-300 text-xs font-bold rounded-xl border border-cyan-500/60 shadow-xl transition flex items-center space-x-2">
+      <i class="fa-solid fa-compass"></i><span>Navigator</span>
+    </button>
+    <button id="float-open-right" class="hidden absolute top-4 right-4 z-20 px-3 py-2 hud-glass hover:bg-slate-800/90 text-emerald-300 text-xs font-bold rounded-xl border border-emerald-500/60 shadow-xl transition flex items-center space-x-2">
+      <i class="fa-solid fa-shield-halved"></i><span>Mission evidence</span>
+    </button>
+
+    <!-- LEFT DRAWER -->
+    <aside id="drawer-left" class="absolute top-16 sm:top-4 left-4 z-10 w-80 max-h-[calc(100%-5rem)] sm:max-h-[calc(100%-2rem)] flex flex-col hud-glass rounded-xl p-3.5 overflow-y-auto space-y-3 shadow-2xl">
+      <div class="flex items-center justify-between border-b border-slate-800/80 pb-1.5">
+        <div class="flex items-center space-x-1.5 text-xs font-bold text-cyan-300 uppercase tracking-wider">
+          <i class="fa-solid fa-route text-cyan-400"></i>
+          <span>Directions</span>
+        </div>
+        <div class="flex items-center space-x-1">
+          <button id="btn-collapse-left" class="p-1 rounded text-slate-400 hover:text-white transition">
+            <i class="fa-solid fa-chevron-left text-xs"></i>
+          </button>
+        </div>
+      </div>
+
+      <section class="directions-card" aria-labelledby="directions-title">
+        <div class="directions-intro"><span class="directions-kicker">PLAN YOUR TRAVERSE</span><h2 id="directions-title">Where are you heading?</h2><p>Connect two places on Mars.</p></div>
+        <form id="directions-form" novalidate>
+          <div class="endpoint-stack">
+            <div id="from-row" class="endpoint-row" data-active="false">
+              <span class="endpoint-icon start-icon" aria-hidden="true">A</span>
+              <div class="endpoint-copy"><label for="from-input">From</label><input id="from-input" type="text" placeholder="Starting place or latitude, longitude" autocomplete="off" spellcheck="false" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="from-suggestions" aria-describedby="route-point-a-coords"><span id="route-point-a-label" class="sr-only"></span><small id="route-point-a-coords">Choose your starting point</small><div id="from-suggestions" class="place-suggestions" role="listbox" aria-label="Starting place suggestions" hidden></div></div>
+              <button id="btn-select-target-a" class="choose-on-map" type="button" title="Choose start on the map" aria-label="Choose start on the map"><i class="fa-solid fa-crosshairs" aria-hidden="true"></i><span id="dot-target-a" class="sr-only"></span></button>
+            </div>
+            <span class="endpoint-connector" aria-hidden="true"></span>
+            <button id="btn-swap-ab" class="swap-endpoints" type="button" title="Swap start and destination" aria-label="Swap start and destination"><i class="fa-solid fa-arrow-right-arrow-left" aria-hidden="true"></i></button>
+            <div id="destination-row" class="endpoint-row" data-active="true">
+              <span class="endpoint-icon destination-icon" aria-hidden="true">B</span>
+              <div class="endpoint-copy"><label for="destination-input">Destination</label><input id="destination-input" type="text" placeholder="Destination or latitude, longitude" autocomplete="off" spellcheck="false" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="destination-suggestions" aria-describedby="route-point-b-coords"><span id="route-point-b-label" class="sr-only"></span><small id="route-point-b-coords">Choose your destination</small><div id="destination-suggestions" class="place-suggestions" role="listbox" aria-label="Destination suggestions" hidden></div></div>
+              <button id="btn-select-target-b" class="choose-on-map" type="button" title="Choose destination on the map" aria-label="Choose destination on the map"><i class="fa-solid fa-location-dot" aria-hidden="true"></i><span id="dot-target-b" class="sr-only"></span></button>
+            </div>
+          </div>
+          <p id="directions-error" class="directions-error" role="alert"></p>
+          <button id="get-directions" class="get-directions" type="submit"><i class="fa-solid fa-route" aria-hidden="true"></i><span id="get-directions-label">Get directions</span><i class="fa-solid fa-arrow-right" aria-hidden="true"></i></button>
+        </form>
+        <button id="use-measured-route" type="button" class="route-example">Try a measured study route <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></button>
+        <p id="directions-hint" class="directions-hint" aria-live="polite">Search study places, enter coordinates, or choose points on the map.</p>
+        <div id="route-comparison" class="route-comparison" role="group" aria-label="Compare route choices" hidden></div>
+        <div id="directions-summary" class="directions-summary" hidden><div><span class="route-summary-label">YOUR TRAVERSE</span><div class="route-summary-metrics"><strong id="directions-duration"></strong><span id="directions-distance"></span></div><small id="directions-source"></small></div><button id="directions-fit" type="button" title="Show entire route" aria-label="Show entire route"><i class="fa-solid fa-expand" aria-hidden="true"></i></button></div>
+        <details id="directions-steps" class="directions-steps" hidden><summary><i class="fa-solid fa-list-ul" aria-hidden="true"></i><span id="directions-step-count">Directions</span></summary><ol id="turn-list"></ol></details>
+      </section>
+      <button id="open-science-planner" type="button" class="science-launch"><i class="fa-solid fa-flask" aria-hidden="true"></i><span><strong>Plan a science Marswalk</strong><small>Objectives, stops, budgets &amp; return route</small></span><i class="fa-solid fa-arrow-right" aria-hidden="true"></i></button>
+      <details class="directions-coverage"><summary>About map coverage</summary><p>Explore beyond Arcadia's outlined 10,000 km&sup2; sector. Routing, slope and 3D use measured source coverage. Search uses the loaded Mars study places; coordinates are latitude, longitude.</p></details>
+
+      <section id="hazard-safety-panel" class="planning-panel" aria-labelledby="hazard-safety-title">
+        <div class="planning-heading"><div><p class="planning-eyebrow">TERRAIN AWARENESS</p><h2 id="hazard-safety-title">Hazards &amp; conditions</h2></div><i class="fa-solid fa-shield-halved" aria-hidden="true"></i></div>
+        <div id="measured-hazard-controls">
+          <label class="planning-toggle"><span><strong>Measured slope flags</strong><small>Elevation-derived terrain overlays</small></span><input id="show-measured-hazards" type="checkbox" checked></label>
+          <div class="hazard-legend"><span><i class="legend-dot caution"></i>3&ndash;10&deg; caution</span><span><i class="legend-dot steep"></i>10&deg;+ steep</span><span><i class="legend-dot unknown"></i>No data</span></div>
+          <p id="hazard-source-status" class="planning-caption" role="status">Loading source polygons...</p>
+          <button id="focus-measured-hazards" class="planning-action" type="button"><i class="fa-solid fa-crosshairs" aria-hidden="true"></i> Inspect measured terrain</button>
+        </div>
+        <div id="safety-route-rules" class="safety-rules">
+          <div class="planning-row"><label for="safety-slope-limit">Route slope limit</label><output id="safety-limit-value" for="safety-slope-limit">5 deg</output></div>
+          <input id="safety-slope-limit" type="range" min="1" max="30" step="0.5" value="5" aria-describedby="safety-rules-note">
+          <div class="planning-row planning-caption"><span>1&deg; conservative</span><button id="safety-reset" type="button">Reset to 5&deg;</button><span>30&deg; permissive</span></div>
+          <p id="safety-rules-note" class="planning-caption">The original frontend used 2.8&deg; caution and a 5&deg; limit. These are planning heuristics, not a NASA safety standard.</p>
+        </div>
+        <div id="safety-conditions" class="condition-list" aria-live="polite"></div>
+        <p id="safety-route-note" class="planning-caption">Select a waypoint to inspect conditions.</p>
+        <details class="original-demo-section">
+          <summary>Original frontend hazard examples</summary>
+          <label class="planning-toggle"><span><strong>Illustrative hazard zones</strong><small>Original crater / scarp examples</small></span><input id="show-demo-hazards" type="checkbox"></label>
+          <p class="planning-caption">Dashed purple zones are illustrative examples at their original coordinates. They do not establish a real hazard or change measured route terrain.</p>
+          <div id="demo-hazard-actions" hidden><button id="focus-demo-hazards" class="planning-action" type="button">View all example zones</button><div id="demo-hazard-list"></div></div>
+        </details>
+      </section>
+
+      <!-- Speed Controller -->
+      <div id="walking-controls" class="p-2.5 rounded-lg bg-slate-950/90 border border-slate-800 space-y-2">
+        <div class="flex items-center justify-between text-xs font-mono">
+          <span class="text-slate-400 uppercase text-[10px]">
+            <i class="fa-solid fa-gauge mr-1.5 text-emerald-400"></i>Speed
+          </span>
+          <div class="flex items-center space-x-1">
+            <input type="number" id="speed-number-input" min="0.36" max="5.4" step="0.01" value="3.5"
+                   class="w-14 px-1 py-0.5 text-right font-bold text-emerald-400 bg-slate-900 border border-slate-700 rounded text-xs" />
+            <span class="text-slate-400 text-[10px]">km/h</span>
+          </div>
+        </div>
+        <input type="range" id="speed-slider" min="0.36" max="5.4" step="0.01" value="3.5"
+               class="w-full accent-emerald-500 cursor-pointer h-1.5 bg-slate-800 rounded-lg" />
+        <div class="grid grid-cols-4 gap-1 text-[9px] font-mono">
+          <button data-speed="0.36" class="speed-preset-btn py-1 rounded bg-slate-900 hover:bg-slate-800 border border-slate-700 text-amber-300">0.36 km/h</button>
+          <button data-speed="3.5" class="speed-preset-btn py-1 rounded bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-300">Suit 3.5</button>
+          <button data-speed="5.0" class="speed-preset-btn py-1 rounded bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-300">5.0 km/h</button>
+          <button data-speed="5.4" class="speed-preset-btn py-1 rounded bg-slate-900 hover:bg-slate-800 border border-slate-700 text-emerald-300 font-bold">5.4 km/h</button>
+        </div>
+      </div>
+
+      
+      <div id="terrain-layers" class="grid grid-cols-2 gap-2 text-xs">
+        <button data-basemap="local" class="basemap-btn hud-subcard p-2">Mars imagery</button>
+        <button data-basemap="relief" class="basemap-btn hud-subcard p-2">Measured relief</button>
+        <button data-basemap="slope" class="basemap-btn hud-subcard p-2">Slope</button>
+        <button data-basemap="thermal" class="basemap-btn hud-subcard p-2">Night infrared</button>
+      </div>
+      <section class="thermal-comparison" aria-labelledby="mission-layers-title"><h3 id="mission-layers-title">Layer mission evidence</h3><p>Optical + topography + thermal context</p><label><input id="blend-thermal" type="checkbox" checked> Blend Odyssey thermal imagery</label><div id="thermal-blend-controls"><label for="thermal-opacity">Thermal opacity <output id="thermal-opacity-value">35%</output></label><input id="thermal-opacity" type="range" min="0" max="100" value="35"></div><small>THEMIS nighttime image brightness; not calibrated temperature.</small></section>
+      <!-- Overlays -->
+      <div class="space-y-1 pt-1 border-t border-slate-800 text-[11px]">
+        <div class="text-xs font-bold uppercase tracking-wider text-cyan-400 mb-1">
+          <i class="fa-solid fa-layer-group mr-1.5"></i>GIS &amp; Mission Overlays
+        </div>
+        
+        
+        
+        <label class="flex items-center justify-between p-1.5 rounded hud-subcard cursor-pointer">
+          <span>Proposed study locations</span>
+          <input type="checkbox" data-layer="ice" checked class="overlay-chk accent-cyan-500 w-3.5 h-3.5" />
+        </label>
+        
+        <label class="flex items-center justify-between p-1.5 rounded hud-subcard cursor-pointer">
+          <span>Measured terrain boundary</span>
+          <input type="checkbox" data-layer="grid" checked class="overlay-chk accent-blue-500 w-3.5 h-3.5" />
+        </label>
+      </div>
+
+      <!-- Scenarios -->
+      <div class="space-y-1 pt-1 border-t border-slate-800">
+        <div class="text-xs font-bold uppercase tracking-wider text-emerald-400 flex justify-between">
+          <span><i class="fa-solid fa-vial mr-1.5"></i>Quick Scenarios</span>
+          <span id="scenario-region-tag" class="text-[9px] text-slate-400 font-mono">ARCADIA</span>
+        </div>
+        <div id="scenario-buttons-container" class="grid grid-cols-2 gap-1 text-[10px] font-mono"></div>
+      </div>
+
+      <button id="btn-reset-view" class="w-full py-1.5 bg-slate-800 hover:bg-slate-700 text-xs text-slate-200 font-semibold rounded-lg border border-slate-600">
+        <i class="fa-solid fa-expand text-cyan-400 mr-1.5"></i>Reset Mission View
+      </button>
+    </aside>
+
+    <!-- RIGHT DRAWER -->
+    <aside id="drawer-right" class="absolute top-16 sm:top-4 right-4 z-10 w-[22rem] max-h-[calc(100%-5rem)] sm:max-h-[calc(100%-2rem)] hud-glass rounded-xl p-3.5 flex flex-col space-y-2.5 overflow-y-auto shadow-2xl">
+      <div class="flex items-center justify-between border-b border-slate-800/80 pb-1.5">
+        <span class="text-xs uppercase font-bold font-mono tracking-wider text-cyan-300">
+          <i class="fa-solid fa-scale-balanced mr-1.5 text-cyan-400"></i>Marswalk Evidence &amp; Route
+        </span>
+        <div class="flex items-center space-x-1.5">
+          <span id="dual-mission-badge" class="px-2 py-0.5 rounded text-[9px] font-bold font-mono bg-emerald-500 text-slate-950">PLANNING ONLY</span>
+          <button id="btn-collapse-right" class="p-1 rounded text-slate-400 hover:text-white transition">
+            <i class="fa-solid fa-chevron-right text-xs"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Site A Card -->
+      <div id="card-site-a" class="p-2 rounded bg-slate-900/90 border border-emerald-500/50 space-y-1">
+        <div class="flex items-center justify-between">
+          <span class="text-[10px] font-bold font-mono text-emerald-400">POINT A (START)</span>
+          <span id="badge-site-a" class="px-1.5 py-0.5 rounded text-[9px] font-bold font-mono bg-emerald-500 text-slate-950">Loading</span>
+        </div>
+        <div id="desc-site-a" class="text-[11px] font-semibold text-slate-100 truncate">Loading backend terrain</div>
+        <div class="grid grid-cols-3 gap-1 text-[9px] font-mono text-center">
+          <div class="p-1 rounded bg-slate-950 border border-slate-800"><div class="text-slate-400">ELEV</div><div id="elev-site-a" class="font-bold text-emerald-400">-3,940m</div></div>
+          <div class="p-1 rounded bg-slate-950 border border-slate-800"><div class="text-slate-400">SLOPE</div><div id="slope-site-a" class="font-bold text-emerald-400">&lt; 1.4°</div></div>
+          
+        </div>
+      </div>
+
+      <!-- Site B Card -->
+      <div id="card-site-b" class="p-2 rounded bg-slate-900/90 border border-cyan-500/50 space-y-1">
+        <div class="flex items-center justify-between">
+          <span class="text-[10px] font-bold font-mono text-cyan-400">POINT B (DESTINATION)</span>
+          <span id="badge-site-b" class="px-1.5 py-0.5 rounded text-[9px] font-bold font-mono bg-emerald-500 text-slate-950">Loading</span>
+        </div>
+        <div id="desc-site-b" class="text-[11px] font-semibold text-slate-100 truncate">Loading backend terrain</div>
+        <div class="grid grid-cols-3 gap-1 text-[9px] font-mono text-center">
+          <div class="p-1 rounded bg-slate-950 border border-slate-800"><div class="text-slate-400">ELEV</div><div id="elev-site-b" class="font-bold text-emerald-400">-3,993m</div></div>
+          <div class="p-1 rounded bg-slate-950 border border-slate-800"><div class="text-slate-400">SLOPE</div><div id="slope-site-b" class="font-bold text-emerald-400">&lt; 1.8°</div></div>
+          
+        </div>
+      </div>
+
+      <div id="dual-verdict-summary" class="text-[10px] p-1.5 rounded bg-emerald-950/40 border border-emerald-800 text-emerald-300 leading-tight">
+Terrain assessment pending. Safety is unverified.
+      </div>
+
+      <!-- Route Card -->
+      <div class="p-2.5 rounded-lg bg-slate-900/90 border border-slate-800 space-y-2">
+        <div id="route-avoidance-banner" class="p-1.5 rounded bg-emerald-950/60 border border-emerald-600/70 text-[10px] text-emerald-200 flex items-center space-x-2">
+          <i class="fa-solid fa-shield-halved text-emerald-400 text-xs"></i>
+          <div>
+            <div id="route-avoidance-title" class="font-bold text-emerald-300 text-[10px]">Preparing route</div>
+            <div id="route-avoidance-detail" class="text-[9px] text-slate-300">Loading measured data...</div>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2 text-center font-mono">
+          <div class="p-1.5 rounded bg-slate-950 border border-slate-800">
+            <div class="text-[9px] text-slate-400">ESTIMATED TIME</div>
+            <div id="nav-travel-time" class="text-sm font-bold text-amber-300 mt-0.5">Calculating...</div>
+          </div>
+          <div class="p-1.5 rounded bg-slate-950 border border-slate-800">
+            <div class="text-[9px] text-slate-400">DISTANCE</div>
+            <div id="nav-distance" class="text-sm font-bold text-cyan-300 mt-0.5">Calculating...</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Terrain evidence -->
+      <div class="hud-subcard rounded-lg overflow-hidden">
+        <button id="btn-toggle-strat" class="w-full p-2 flex items-center justify-between text-left text-xs font-bold text-cyan-400 hover:bg-slate-800/50">
+          <span><i class="fa-solid fa-mountain mr-1.5"></i>Terrain evidence</span>
+          <i id="icon-strat-toggle" class="fa-solid fa-chevron-down text-slate-400 text-[10px]"></i>
+        </button>
+        <div id="stratigraphy-body" class="hidden p-2.5 pt-0 border-t border-slate-800/80 text-[10px] space-y-1">
+          <div id="dossier-coords" class="text-slate-400 font-mono">39.3600°N, 170.5200°W</div>
+          <div id="dossier-terrain" class="font-bold text-slate-100">Smooth Volcanic Basalt Plain</div>
+          <p id="dossier-geology" class="text-slate-300 leading-relaxed"></p>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="grid grid-cols-2 gap-1.5">
+        <button id="btn-save-mission" class="py-1.5 bg-cyan-700 hover:bg-cyan-600 text-white font-semibold text-xs rounded-lg transition">
+          <i class="fa-solid fa-bookmark mr-1"></i>Save Plan
+        </button>
+        <button id="btn-copy-dossier" class="py-1.5 bg-amber-600 hover:bg-amber-500 text-white font-semibold text-xs rounded-lg transition">
+          <i class="fa-solid fa-file-export mr-1"></i>Copy Dossier
+        </button>
+      </div>
+    </aside>
+
+    <!-- Bottom Scale Bar -->
+    <div class="absolute bottom-4 left-1/2 -translate-x-1/2 z-10 px-4 py-1.5 hud-glass rounded-xl text-xs font-mono text-slate-300 flex flex-col items-center space-y-1 shadow-xl">
+      <div class="flex items-center space-x-3 text-[11px]">
+        <span><i class="fa-solid fa-compass text-cyan-400 mr-1"></i><span id="cursor-pos" class="text-white font-bold">39.200°N, 170.300°W</span></span>
+        <span class="text-slate-600">|</span>
+        <span id="bottom-grid-label"><b>100 KM GRID</b></span>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- =====================================================================
+       VIEW 2: MISSION OVERVIEW / LANDING PAGE
+       ===================================================================== -->
+  <section id="view-science" class="view-section hidden flex-1 overflow-y-auto">
+    <div class="marswalk-workspace">
+      <header class="marswalk-heading"><div><span class="science-eyebrow">HABITAT MISSION CONTROL</span><h2>Science before footsteps.</h2><p>Build a Marswalk from proposed Arcadia study stops, measured terrain and transparent assumptions.</p></div><span class="science-prototype">Research planning prototype</span></header>
+      <div class="marswalk-layout">
+        <div class="marswalk-plan-column">
+          <form id="science-form" class="mission-surface" novalidate>
+            <div class="mission-section-heading"><span>01</span><h3>Define your mission</h3></div>
+            <label class="science-field">Marswalk name<input id="science-name" maxlength="80" value="Arcadia terrace reconnaissance"></label>
+            <div class="science-form-grid"><label class="science-field">Crew size<input id="science-crew" type="number" min="1" max="4" value="2"></label><label class="science-field">Walking speed (km/h)<input id="science-speed" type="number" min="0.36" max="5.4" step="0.01" value="3.5"></label></div>
+            <label class="science-field">Science equipment<input id="science-kit" maxlength="500" value="Camera, field notebook, sampling tools"></label>
+            <div class="mission-section-heading"><span>02</span><h3>Choose science stops</h3></div><p class="science-helper">Select stops, edit objectives and move them into visit order. Every target is a proposed investigation on orbital data.</p>
+            <div id="science-stop-list"></div>
+            <div class="mission-section-heading"><span>03</span><h3>Set mission constraints</h3></div>
+            <div class="science-form-grid"><label class="science-field">Maximum distance (km)<input id="science-distance" type="number" min="0.1" max="30" step="0.1" value="8"></label><label class="science-field">Maximum duration (hours)<input id="science-duration" type="number" min="0.25" max="12" step="0.25" value="4"></label><label class="science-field">Route slope limit (degrees)<input id="science-slope" type="number" min="1" max="30" step="0.5" value="5"></label><label class="science-return"><input id="science-return" type="checkbox" checked> Return to staging origin</label></div>
+            <label class="science-field">Field notes / observations<textarea id="science-notes" rows="3" maxlength="3000" placeholder="Questions to investigate, measurements to collect, unresolved hazards..."></textarea></label>
+            <p class="science-helper">Walking time uses your chosen constant speed. Crew size and equipment are recorded; fatigue, load and spacesuit effects are not modeled.</p>
+            <button id="calculate-marswalk" type="submit" class="science-primary">Calculate science Marswalk</button>
+            <p id="marswalk-message" class="mission-status" role="status">Loading mission evidence...</p>
+          </form>
+          <section class="mission-surface"><div class="mission-section-heading"><span><i class="fa-solid fa-bookmark" aria-hidden="true"></i></span><h3>Saved science Marswalks</h3><button id="refresh-science-archive" type="button" class="science-text-button">Refresh</button></div><div id="science-archive" class="science-archive"></div></section>
+        </div>
+        <div class="marswalk-evidence-column">
+          <section class="mission-surface environment-panel"><div class="mission-section-heading"><span><i class="fa-solid fa-temperature-half" aria-hidden="true"></i></span><h3>Environmental context</h3></div><span class="modeled-badge">ARCHIVED MODEL &middot; NOT LIVE</span><label class="environment-time" for="environment-hour"><span id="environment-hour-label">12:00 local solar time</span><input id="environment-hour" type="range" min="0" max="24" step="1" value="12"></label><div class="environment-grid"><article><small>Air</small><strong id="environment-air">Loading</strong></article><article><small>Surface</small><strong id="environment-surface">Loading</strong></article><article><small>Pressure</small><strong id="environment-pressure">Loading</strong></article><article><small>Wind</small><strong id="environment-wind">Loading</strong></article><article><small>Dust optical depth</small><strong id="environment-dust">Loading</strong></article><article><small>Incident sunlight</small><strong id="environment-sun">Loading</strong></article></div><p id="environment-provenance" class="science-helper"></p><a id="environment-source" target="_blank" rel="noopener" class="science-text-button">Open archived model query</a><details class="mission-gaps"><summary>Evidence gaps to resolve before a real Marswalk</summary><p>No live radiation monitor, local weather forecast, verified ice depth, suit-consumable model or sub-grid rock/sand trafficability map is loaded. Unknown values are not treated as zero.</p></details></section>
+          <section id="marswalk-result" class="mission-surface mission-brief" hidden>
+            <span class="science-eyebrow">MARSWALK BRIEFING</span><h3 id="brief-name"></h3><p id="brief-route-summary" class="science-helper"></p><p id="brief-kit" class="science-helper"></p><p id="brief-notes" class="science-helper" hidden></p>
+            <div class="brief-metrics"><article><strong id="brief-total"></strong><small>Total mission time</small></article><article><strong id="brief-distance"></strong><small>Total traverse</small></article><article><strong id="brief-walking"></strong><small>Walking</small></article><article><strong id="brief-science"></strong><small>Science observations</small></article></div>
+            <div class="budget-row"><label for="time-budget-meter">Time budget</label><span id="brief-time-left"></span></div><meter id="time-budget-meter" min="0" max="14400" value="0"></meter><div class="budget-row"><label for="distance-budget-meter">Distance budget</label><span id="brief-distance-left"></span></div><meter id="distance-budget-meter" min="0" max="8000" value="0"></meter><p class="science-helper">Peak route slope <strong id="brief-slope"></strong>. Feasible under chosen constraints; safety is not certified.</p>
+            <h4>Science itinerary</h4><ol id="science-itinerary" class="science-itinerary"></ol><h4>Mission evidence &middot; three data types</h4><ul id="brief-source-list" class="brief-source-list"></ul><details class="mission-gaps"><summary>Assumptions &amp; limitations</summary><ul id="brief-limitations"></ul></details>
+          </section>
+          <div class="brief-actions"><button id="marswalk-map" type="button" class="science-primary" disabled>Show route on map</button><button id="marswalk-save" type="button" class="science-secondary" disabled>Save Marswalk</button><button id="marswalk-export" type="button" class="science-secondary" disabled>Export JSON briefing</button><button id="marswalk-print" type="button" class="science-secondary" disabled>Print briefing</button></div>
+          <section class="mission-surface orbital-context"><img src="/data/arcadia-hirise.png" alt="HiRISE orbital imagery of the Arcadia terraced-crater planning inset" loading="lazy"><div><h3>See the terrain before you walk it</h3><p>HiRISE orbital context for the 4.8 &times; 4 km planning inset. No rover traverse or surface viewpoint imagery exists for these proposed stops in this app.</p></div></section>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="view-overview" class="view-section hidden flex-1 overflow-y-auto p-6 md:p-10">
+    <div class="challenge-page">
+      <div class="challenge-hero"><span class="science-eyebrow">2026 NASA SPACE APPS CHALLENGE &middot; THE EXPLORERS</span><h2>Interplanetary Survival Guide:<br><em>Martian Map</em></h2><p>Turn orbital evidence into a science-first Marswalk. Choose an objective, inspect layered terrain, plan observation stops and review a measured traverse before leaving the habitat.</p><button data-open-science class="science-primary" type="button">Plan your Marswalk <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></button></div>
+      <div class="challenge-stat-grid"><article><strong>3</strong><span>Science data types</span></article><article><strong>2</strong><span>NASA source missions</span></article><article><strong>20 m</strong><span>Detailed routing grid</span></article><article><strong>3</strong><span>Proposed science stops</span></article></div>
+      <div class="challenge-workflow"><article><span>01</span><h3>Start with the science</h3><p>Investigate Arcadia terrace morphology, plains textures and local relief. Edit each objective and allow observation time at every stop.</p></article><article><span>02</span><h3>Read the surface in layers</h3><p>Compare MRO HiRISE optical imagery and stereo topography with Mars Odyssey THEMIS infrared context. Every source retains its resolution and provenance.</p></article><article><span>03</span><h3>Plan with constraints</h3><p>Set a walking speed, slope limit, total distance and time budget. Include a return leg and account for science time before reviewing the itinerary.</p></article></div>
+      <div class="science-evidence-grid"><article><h3>What is measured</h3><p>Orbital imagery and terrain elevation. Slope, path lengths and ascent are derived from those grids. Targets are proposed, not rover or astronaut locations.</p></article><article><h3>What is modeled</h3><p>Archived Mars Climate Database context for one location and season. It is not live weather or a site-specific forecast.</p></article><article><h3>What still needs evidence</h3><p>Radiation dose, current storms, sub-grid rocks, suit performance and verified surface resources. The prototype does not certify a safe Marswalk.</p></article></div>
+      <div class="challenge-reference"><div><h3>Global context, local science</h3><p>Explore beyond Arcadia's outlined 10,000 km&sup2; sector. Detailed science routing stays within the loaded 4.8 &times; 4 km HiRISE inset. Jezero also supports routing inside its loaded 6 x 5 km terrain footprint.</p></div><button data-jump-region="arcadia" class="science-secondary" type="button">Explore Arcadia</button><button data-jump-region="jezero" class="science-secondary" type="button">View Jezero</button></div>
+    </div>
+  </section>
+
+  <!-- =====================================================================
+       VIEW 3: MARS 2020 PERSEVERANCE RAW IMAGES GALLERY
+       ===================================================================== -->
+  <section id="view-gallery" class="view-section hidden flex-1 overflow-y-auto p-6">
+    <div class="max-w-6xl mx-auto space-y-4">
+      <div class="hud-glass rounded-xl p-4 flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h2 class="text-lg font-bold text-orange-300 font-mono uppercase">
+            <i class="fa-solid fa-camera-retro mr-2"></i>Backend source dataset images
+          </h2>
+          <p id="gallery-status" class="text-xs font-mono text-slate-400">Bundled AR and regional source imagery.</p>
+        </div>
+        <div class="flex items-center space-x-2">
+          <select id="raw-cam-filter" class="bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs font-mono text-slate-200"><option value="">All source images</option><option value="AR HiRISE">AR HiRISE</option><option value="regional">Arcadia regional</option></select>
+          <button id="btn-refresh-gallery" class="px-3 py-1.5 rounded-lg bg-orange-600 hover:bg-orange-500 text-white text-xs font-bold">
+            <i class="fa-solid fa-rotate mr-1"></i>Refresh
+          </button>
+          <a href="https://mars.nasa.gov/mars2020/multimedia/raw-images/" target="_blank" rel="noopener"
+             class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-600 text-cyan-300 text-xs font-mono">
+            Official Archive ↗
+          </a>
+        </div>
+      </div>
+
+      <div id="gallery-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+    </div>
+  </section>
+
+  <!-- =====================================================================
+       VIEW 4: NASA/USGS DATA SOURCES & SAVED MISSION PLANS
+       ===================================================================== -->
+  <section id="view-sources" class="view-section hidden flex-1 overflow-y-auto p-6">
+    <div class="max-w-5xl mx-auto space-y-6">
+      <div>
+        <div id="dataset-catalog" class="integration-note mb-4">Loading backend sources?</div>
+        <h2 class="text-lg font-bold text-cyan-300 font-mono uppercase mb-3">Integrated Official NASA &amp; USGS Resources</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+          <a href="https://trek.nasa.gov/mars/" target="_blank" rel="noopener" class="hud-subcard p-4 rounded-xl hover:border-cyan-500 transition block space-y-1">
+            <div class="font-bold text-cyan-300 font-mono">1. NASA Mars Trek WMTS ↗</div>
+            <p class="text-slate-300">Viking MDIM 2.1, MGS MOLA Color Relief, THEMIS Day IR, and Jezero 25cm HiRISE tiles in EPSG:4326.</p>
+          </a>
+          <a href="https://astrogeology-usgs.hub.arcgis.com/pages/interactive-maps-mars" target="_blank" rel="noopener" class="hud-subcard p-4 rounded-xl hover:border-purple-500 transition block space-y-1">
+            <div class="font-bold text-purple-300 font-mono">2. USGS Astrogeology Mars Maps (WMS) ↗</div>
+            <p class="text-slate-300">Live WMS layers from planetarymaps.usgs.gov for MOLA Color topography and IAU Mars Nomenclature.</p>
+          </a>
+          <a href="https://science.nasa.gov/resource/curiositys-proposed-path-up-mount-sharp/" target="_blank" rel="noopener" class="hud-subcard p-4 rounded-xl hover:border-amber-500 transition block space-y-1">
+            <div class="font-bold text-amber-300 font-mono">3. Curiosity's Proposed Path Up Mount Sharp ↗</div>
+            <p class="text-slate-300">Strategic ascent milestones in Gale Crater from Bradbury Landing through Gediz Vallis to Aeolis Mons.</p>
+          </a>
+          <a href="https://mars.nasa.gov/mars2020/multimedia/raw-images/" target="_blank" rel="noopener" class="hud-subcard p-4 rounded-xl hover:border-orange-500 transition block space-y-1">
+            <div class="font-bold text-orange-300 font-mono">4. Mars 2020 Perseverance Raw Images ↗</div>
+            <p class="text-slate-300">Real-time rover camera feed integration and Jezero Crater mission traverse waypoints.</p>
+          </a>
+        </div>
+      </div>
+
+      <div class="hud-glass rounded-xl p-5 space-y-3">
+        <div class="flex items-center justify-between">
+          <h3 class="text-sm font-bold text-emerald-300 font-mono uppercase">Saved Mission Plans</h3>
+          <span class="text-[11px] font-mono text-slate-400">Stored in Backend API (or LocalStorage fallback)</span>
+        </div>
+        <div id="saved-missions-list" class="space-y-2 text-xs font-mono"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Toast Notification -->
+  <div id="toast" class="hidden fixed bottom-5 right-5 z-50 px-4 py-2.5 rounded-xl bg-slate-900 border border-cyan-500 text-xs font-mono text-cyan-200 shadow-2xl"></div>
+
+  <script src="/vendor/leaflet/leaflet.js"></script>
+  <script type="module" src="js/main.js"></script>
+<dialog id="planner-help" class="planner-help" aria-labelledby="planner-help-title">
+  <div class="help-heading"><p class="brand-subtitle">THE EXPLORERS ? VERSION 1.0</p><button id="close-help" class="theme-toggle" type="button" aria-label="Close guide">Close</button></div>
+  <h2 id="planner-help-title">Your Marswalk, planned with evidence.</h2>
+  <ol><li>Choose Arcadia or Jezero. Enter a starting place and destination, or place the pins on the map.</li><li>Set your walking speed and slope limit in the left panel, then press <strong>Get directions</strong>.</li><li>Compare the shortest route with the route that minimizes the maximum slope. Editing a setting clears the routes until you press the button again.</li><li>In Arcadia, switch to 3D to inspect measured terrain. Drag to orbit, scroll to zoom. The relief multiplier exaggerates height.</li><li>Open Marswalk to arrange science stops, set mission limits, and save or export your briefing.</li></ol>
+  <p>Measured terrain coverage is outlined. The 100 ? 100 km Arcadia border marks the regional dataset; you can explore beyond it.</p>
+  <p class="help-caution">Research and team demonstration only. ?Safest? compares terrain slope within the available grid. It does not assess every hazard or certify astronaut safety. Atmospheric conditions are archived model samples, not live weather. Review Sources &amp; Saved for provenance and limitations.</p>
+</dialog>
+</body>
+</html>

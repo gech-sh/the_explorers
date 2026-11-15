@@ -1,0 +1,2 @@
+backend/data/ar/raw/*.JP2 filter=lfs diff=lfs merge=lfs -text
+backend/data/ar/raw/*.shp filter=lfs diff=lfs merge=lfs -text

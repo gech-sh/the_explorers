@@ -1,25 +1,18 @@
 {
-  "name": "the-explorers-backend",
-  "version": "0.1.0",
+  "name": "the-explorers-integrated",
   "private": true,
-  "type": "module",
+  "scripts": {
+    "setup": "npm --prefix backend ci && npm --prefix backend run db:local && npm run build",
+    "start": "node backend/scripts/secure-server.mjs",
+    "test": "npm --prefix backend test",
+    "typecheck": "npm --prefix backend run typecheck",
+    "test:integration": "node backend/tests/frontend-integration.mjs",
+    "start:lan": "node backend/scripts/secure-server.mjs",
+    "build": "npm --prefix backend run build",
+    "verify": "node backend/scripts/verify-release.mjs"
+  },
+  "version": "1.0.0",
   "engines": {
     "node": ">=22.13.0"
-  },
-  "scripts": {
-    "test": "node tests/run.mjs",
-    "typecheck": "tsc --noEmit",
-    "db:generate": "drizzle-kit generate"
-  },
-  "dependencies": {
-    "drizzle-orm": "0.45.2",
-    "zod": "^3.25.76"
-  },
-  "devDependencies": {
-    "@cloudflare/workers-types": "4.20260515.1",
-    "@types/node": "22.19.19",
-    "drizzle-kit": "0.31.10",
-    "typescript": "5.9.3",
-    "esbuild": "0.28.0"
   }
 }

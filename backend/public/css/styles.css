@@ -1,0 +1,65 @@
+#map {
+  position: absolute;
+  inset: 0;
+  background: #07090e;
+  cursor: crosshair !important;
+}
+
+.hud-glass {
+  background: rgba(11, 17, 32, 0.94);
+  backdrop-filter: blur(14px);
+  border: 1px solid rgba(56, 189, 248, 0.25);
+  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.75);
+}
+
+.hud-subcard {
+  background: rgba(15, 23, 42, 0.88);
+  border: 1px solid rgba(51, 65, 85, 0.6);
+}
+
+.scale-ruler {
+  background: repeating-linear-gradient(90deg, #38bdf8, #38bdf8 25%, #0f172a 25%, #0f172a 50%);
+  border: 1px solid #38bdf8;
+}
+
+.route-pulse {
+  stroke-dasharray: 8, 8;
+  animation: dash 30s linear infinite;
+}
+
+.danger-dash {
+  stroke-dasharray: 6, 6;
+  animation: dashReverse 20s linear infinite;
+}
+
+.curiosity-dash {
+  stroke-dasharray: 5, 5;
+}
+
+@keyframes dash {
+  to { stroke-dashoffset: -1000; }
+}
+
+@keyframes dashReverse {
+  to { stroke-dashoffset: 1000; }
+}
+
+.leaflet-popup-content-wrapper {
+  background: rgba(15, 23, 42, 0.96) !important;
+  color: #e2e8f0 !important;
+  border: 1px solid rgba(56, 189, 248, 0.5) !important;
+  border-radius: 0.75rem !important;
+  backdrop-filter: blur(14px) !important;
+  box-shadow: 0 14px 35px rgba(0, 0, 0, 0.85) !important;
+  padding: 4px !important;
+}
+
+.leaflet-popup-tip {
+  background: rgba(15, 23, 42, 0.96) !important;
+  border: 1px solid rgba(56, 189, 248, 0.5) !important;
+}
+
+.leaflet-popup-content {
+  margin: 8px 10px !important;
+  line-height: 1.4 !important;
+}
